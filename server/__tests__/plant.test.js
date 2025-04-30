@@ -3,16 +3,8 @@ const app = require('../app');
 const { sequelize } = require('../models');
 const jwt = require('jsonwebtoken');
 
-let server;
-
 beforeAll(async () => {
     await sequelize.sync({ force: true });
-    server = app.listen(0); // Gunakan port dinamis untuk pengujian
-});
-
-afterAll(async () => {
-    await sequelize.close();
-    server.close(); // Tutup server setelah semua tes selesai
 });
 
 describe('Plant API', () => {

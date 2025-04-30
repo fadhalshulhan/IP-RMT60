@@ -10,7 +10,7 @@ const { sendReminderEmail } = require('./config/sendEmail');
 const main = async () => {
     try {
         await sendReminderEmail(
-            "heydhal.com@gmail.com", // Ganti dengan email tujuan yang valid
+            "heydhal.com@gmail.com",
             "Monstera",
             "menyiram"
         );

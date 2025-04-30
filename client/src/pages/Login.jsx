@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { user, loading, error } = useSelector((state) => state.auth);
 
   const handleSuccess = (response) => {
     dispatch(loginWithGoogle(response.credential)).then(() => {

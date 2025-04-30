@@ -5,6 +5,22 @@ const plantRoutes = require('./routes/plants');
 const recommendationRoutes = require('./routes/recommendation');
 const weatherRoutes = require('./routes/weather');
 
+const { sendReminderEmail } = require('./config/sendEmail');
+
+const main = async () => {
+    try {
+        await sendReminderEmail(
+            "heydhal.com@gmail.com", // Ganti dengan email tujuan yang valid
+            "Monstera",
+            "menyiram"
+        );
+    } catch (error) {
+        console.error("Failed to send email:", error);
+    }
+};
+
+main();
+
 const app = express();
 
 app.use(cors());

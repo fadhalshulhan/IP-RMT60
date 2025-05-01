@@ -5,6 +5,7 @@ const plantRoutes = require('./routes/plants');
 const recommendationRoutes = require('./routes/recommendation');
 const weatherRoutes = require('./routes/weather');
 const ErrorHandler = require('./middlewares/errorHandler');
+const bodyParser = require('body-parser');
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -16,6 +17,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(bodyParser.json({ limit: '2mb' }));
+app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/plants', plantRoutes);

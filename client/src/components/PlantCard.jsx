@@ -18,11 +18,11 @@ function PlantCard({ plant }) {
     (state) => state.plants
   );
   const [isEditing, setIsEditing] = useState(false);
-  const [showModal, setShowModal] = useState(false); 
-  const [showPhotoModal, setShowPhotoModal] = useState(false); 
+  const [showModal, setShowModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showDetailPhotoModal, setShowDetailPhotoModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState(null); 
-  const [openedFromDetailModal, setOpenedFromDetailModal] = useState(false); 
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [openedFromDetailModal, setOpenedFromDetailModal] = useState(false);
   const [formData, setFormData] = useState({
     name: plant.name,
     species: plant.species,
@@ -49,26 +49,59 @@ function PlantCard({ plant }) {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setFormData({ ...formData, photo: reader.result });
+      dispatch(addPlantPhoto({ plantId: plant.id, photo: reader.result }));
     };
     reader.readAsDataURL(file);
   };
 
-  const handleAddPhoto = (e) => {
+  const handleAddPhoto = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validasi tipe dan ukuran
     const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
       alert("Please upload a valid image file (JPEG, PNG, or GIF)");
       return;
     }
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      alert("Ukuran file terlalu besar. Silakan unggah gambar maksimal 10MB.");
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      dispatch(addPlantPhoto({ plantId: plant.id, photo: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    // Upload ke Cloudinary
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "plant_photos_preset");
+    formData.append("folder", "plant_photos");
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${
+          import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+        }/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const result = await response.json();
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      // Kirim URL ke server
+      dispatch(
+        addPlantPhoto({
+          plantId: plant.id,
+          photo: result.secure_url,
+          uploadedAt: new Date().toISOString(),
+        })
+      );
+    } catch (error) {
+      alert("Gagal mengunggah gambar: " + error.message);
+    }
   };
 
   const handleUpdate = () => {
@@ -86,7 +119,7 @@ function PlantCard({ plant }) {
     if (window.confirm("Apakah Anda yakin ingin menghapus foto ini?")) {
       try {
         await dispatch(deletePlantPhoto(photoId)).unwrap();
-        if (onSuccess) onSuccess(); 
+        if (onSuccess) onSuccess();
       } catch (err) {
         console.error("Gagal hapus foto:", err);
       }
@@ -96,9 +129,9 @@ function PlantCard({ plant }) {
   const handlePhotoClick = (photoUrl, fromDetailModal = false) => {
     setSelectedPhoto(photoUrl);
     setShowPhotoModal(true);
-    setOpenedFromDetailModal(fromDetailModal); 
+    setOpenedFromDetailModal(fromDetailModal);
     if (fromDetailModal) {
-      setShowDetailPhotoModal(false); 
+      setShowDetailPhotoModal(false);
     }
   };
 
@@ -106,8 +139,8 @@ function PlantCard({ plant }) {
     setShowPhotoModal(false);
     setSelectedPhoto(null);
     if (openedFromDetailModal) {
-      setShowDetailPhotoModal(true); 
-      setOpenedFromDetailModal(false); 
+      setShowDetailPhotoModal(true);
+      setOpenedFromDetailModal(false);
     }
   };
 

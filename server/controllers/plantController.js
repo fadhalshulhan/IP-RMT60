@@ -169,23 +169,35 @@ class PlantController {
             const { plantId } = req.params;
             const { photoUrl, uploadedAt } = req.body;
 
+            // Validasi plant
             const plant = await Plant.findOne({ where: { id: plantId, userId: req.user.userId } });
-            if (!plant) return res.status(404).json({ message: "Plant not found or unauthorized" });
+            if (!plant) {
+                return res.status(404).json({ message: "Plant not found or unauthorized" });
+            }
 
+            // Validasi input
             if (!photoUrl || !uploadedAt) {
                 return res.status(400).json({ message: "Photo URL and uploadedAt are required" });
             }
 
-            const result = await cloudinary.uploader.upload(photoUrl, {
-                folder: "plant_photos",
-            });
+            // Validasi uploadedAt
+            if (isNaN(new Date(uploadedAt).getTime())) {
+                return res.status(400).json({ message: "Invalid uploadedAt format. Please provide a valid ISO date." });
+            }
 
+            // (Opsional) Validasi bahwa photoUrl adalah URL
+            if (!photoUrl.startsWith("https://")) {
+                return res.status(400).json({ message: "Invalid photo URL. Please provide a valid URL starting with https://." });
+            }
+
+            // Simpan ke database
             await PlantPhoto.create({
                 plantId: plant.id,
-                photoUrl: result.secure_url,
+                photoUrl, // Langsung simpan URL dari Cloudinary
                 uploadedAt: new Date(uploadedAt),
             });
 
+            // Ambil data tanaman yang diperbarui
             const updatedPlant = await Plant.findOne({
                 where: { id: plant.id },
                 include: [{ model: PlantPhoto, as: "PlantPhotos" }],

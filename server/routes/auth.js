@@ -1,7 +1,9 @@
 const express = require('express');
-const { verifyGoogleToken } = require('../controllers/authController');
+const { authenticate } = require('../middlewares/authMiddleware');
+const AuthController = require('../controllers/authController');
 const router = express.Router();
 
-router.post('/google', verifyGoogleToken);
+router.post('/google', AuthController.verifyGoogleToken);
+router.get('/verify', authenticate, AuthController.verifySession);
 
 module.exports = router;

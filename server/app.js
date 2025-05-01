@@ -4,22 +4,13 @@ const authRoutes = require('./routes/auth');
 const plantRoutes = require('./routes/plants');
 const recommendationRoutes = require('./routes/recommendation');
 const weatherRoutes = require('./routes/weather');
+const ErrorHandler = require('./middlewares/errorHandler');
 
-const { sendReminderEmail } = require('./config/sendEmail');
 
-const main = async () => {
-    try {
-        await sendReminderEmail(
-            "heydhal.com@gmail.com",
-            "Monstera",
-            "menyiram"
-        );
-    } catch (error) {
-        console.error("Failed to send email:", error);
-    }
-};
-
-main();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+    console.log({ env: process.env.NODE_ENV });
+}
 
 const app = express();
 
@@ -31,9 +22,21 @@ app.use('/api/plants', plantRoutes);
 app.use('/api/recommendation', recommendationRoutes);
 app.use('/api/weather', weatherRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+app.use(ErrorHandler.errorHandler);
+
+if (process.env.NODE_ENV === 'test') {
+    app.get('/trigger-error', (req, res, next) => next(new Error()));
+    app.get('/trigger-custom-error', (req, res, next) => {
+        const err = new Error('Custom error');
+        err.status = 418;
+        next(err);
+    });
+}
+
+if (process.env.NODE_ENV === 'test') {
+    app.get('/api/test/verify', (req, res) => {
+        res.status(200).json({ token: 'mocktoken', user: { id: 1 } });
+    });
+}
 
 module.exports = app;

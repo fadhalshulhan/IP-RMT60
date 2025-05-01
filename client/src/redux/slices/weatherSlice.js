@@ -1,15 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../helpers/api';
 
-export const fetchWeather = createAsyncThunk('weather/fetchWeather', async (city, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+export const fetchWeather = createAsyncThunk('weather/fetchWeather', async ({ lat, lon }, { rejectWithValue }) => {
     try {
-        const response = await axios.get(`http://localhost:3000/api/weather?city=${city}`, {
-            headers: { Authorization: `Bearer ${auth.token}` },
-        });
+        const response = await api.get(`/api/weather?lat=${lat}&lon=${lon}`);
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data);
+        console.log("🚀 ~ fetchWeather ~ error:", error);
+        return rejectWithValue({});
     }
 });
 
@@ -24,6 +22,7 @@ const weatherSlice = createSlice({
         builder
             .addCase(fetchWeather.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(fetchWeather.fulfilled, (state, action) => {
                 state.loading = false;

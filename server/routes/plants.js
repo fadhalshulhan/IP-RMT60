@@ -1,12 +1,13 @@
 const express = require('express');
-const authenticate = require('../middlewares/auth');
-const { createPlant, getPlants, updatePlant, deletePlant, uploadPlantPhoto } = require('../controllers/plantController');
+const PlantController = require('../controllers/plantController');
+const { authenticate } = require('../middlewares/authMiddleware');
 const router = express.Router();
 
-router.post('/', authenticate, createPlant);
-router.get('/', authenticate, getPlants);
-router.put('/:id', authenticate, updatePlant);
-router.delete('/:id', authenticate, deletePlant);
-router.post('/:id/photo', authenticate, uploadPlantPhoto);
+router.post('/', authenticate, PlantController.createPlant);
+router.get('/', authenticate, PlantController.getPlants);
+router.put('/:id', authenticate, PlantController.updatePlant);
+router.delete('/:id', authenticate, PlantController.deletePlant);
+router.delete('/photo/:photoId', authenticate, PlantController.deletePlantPhoto);
+router.post('/:plantId/photo', authenticate, PlantController.addPlantPhoto);
 
 module.exports = router;

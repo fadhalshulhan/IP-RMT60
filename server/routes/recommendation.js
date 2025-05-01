@@ -1,8 +1,8 @@
 const express = require('express');
-const authenticate = require('../middlewares/auth');
-const { getCareRecommendation } = require('../controllers/recommendationController');
+const { authenticate } = require('../middlewares/authMiddleware');
+const RecommendationController = require('../controllers/recommendationControllerGemini');
 const router = express.Router();
 
-router.post('/care', authenticate, getCareRecommendation);
+router.post('/care', authenticate, RecommendationController.getCareRecommendation);
 
 module.exports = router;

@@ -6,43 +6,148 @@
 
 ## Authentication
 
-- All endpoints (except `/auth/google`) require a JWT token in the header: `Authorization: Bearer <token>`
+- Mayoritas endpoint memerlukan JWT token di header:  
+  `Authorization: Bearer <token>`
+- Namun untuk pengujian manual, beberapa endpoint **tidak memakai autentikasi**
+
+---
 
 ## Endpoints
 
 ### Auth
 
 - **POST /auth/google**
-  - Description: Authenticate user with Google token
-  - Request Body: `{ "token": "google_token" }`
-  - Response: `{ "token": "jwt_token", "user": { "email": "user@example.com", "name": "User Name" } }`
+
+  - Deskripsi: Autentikasi pengguna menggunakan Google token
+  - Request Body:
+    ```json
+    { "token": "google_token" }
+    ```
+  - Response:
+    ```json
+    {
+      "token": "jwt_token",
+      "user": { "email": "user@example.com", "name": "User Name" }
+    }
+    ```
+
+- **GET /auth/verify**
+  - Deskripsi: Verifikasi token dan ambil data user
+  - Header:  
+    `Authorization: Bearer <token>`
+  - Response:
+    ```json
+    {
+      "token": "jwt_token",
+      "user": {
+        "id": 1,
+        "email": "user@example.com",
+        ...
+      }
+    }
+    ```
+
+---
 
 ### Plants
 
+Semua endpoint di bawah ini membutuhkan autentikasi.
+
 - **POST /plants**
-  - Description: Create a new plant
-  - Request Body: `{ "name": "Monstera", "species": "Monstera Deliciosa", "location": "Jakarta", "light": "Medium", "temperature": 30 }`
-  - Response: `201 { "id": 1, "name": "Monstera", ... }`
+
+  - Deskripsi: Tambah tanaman baru
+  - Request Body:
+    ```json
+    {
+      "name": "Monstera",
+      "species": "Monstera Deliciosa",
+      "location": "Jakarta",
+      "light": "Medium",
+      "temperature": 30
+    }
+    ```
+  - Response: `201 Created`
+    ```json
+    {
+      "id": 1,
+      "name": "Monstera",
+      ...
+    }
+    ```
+
 - **GET /plants**
-  - Description: Get all plants for the authenticated user
-  - Response: `200 [{ "id": 1, "name": "Monstera", ... }]`
+
+  - Deskripsi: Ambil semua tanaman milik user
+  - Response: `200 OK`
+    ```json
+    [
+      { "id": 1, "name": "Monstera", ... },
+      ...
+    ]
+    ```
+
 - **PUT /plants/:id**
-  - Description: Update a plant
-  - Request Body: `{ "name": "Updated Monstera" }`
-  - Response: `200 { "id": 1, "name": "Updated Monstera", ... }`
+
+  - Deskripsi: Update tanaman berdasarkan ID
+  - Request Body:
+    ```json
+    { "name": "Updated Monstera" }
+    ```
+  - Response: `200 OK`
+
 - **DELETE /plants/:id**
-  - Description: Delete a plant
-  - Response: `200 { "message": "Plant deleted" }`
+
+  - Deskripsi: Hapus tanaman
+  - Response:
+    ```json
+    { "message": "Plant deleted" }
+    ```
+
+- **POST /plants/:plantId/photo**
+
+  - Deskripsi: Tambah foto tanaman
+  - Request: Form-data atau JSON (bergantung implementasi controller)
+  - Response: `200 OK`
+
+- **DELETE /plants/photo/:photoId**
+  - Deskripsi: Hapus foto tanaman berdasarkan ID foto
+  - Response: `200 OK`
+
+---
 
 ### Recommendation
 
 - **POST /recommendation/care**
-  - Description: Get care recommendation for a plant
-  - Request Body: `{ "species": "Monstera Deliciosa", "location": "Jakarta", "light": "Medium", "temperature": 30 }`
-  - Response: `200 { "recommendation": "Water every 3 days..." }`
+  - Deskripsi: Dapatkan rekomendasi perawatan tanaman dari AI
+  - (Tidak memerlukan autentikasi)
+  - Request Body:
+    ```json
+    {
+      "species": "Monstera Deliciosa",
+      "location": "Jakarta",
+      "light": "Medium",
+      "temperature": 30
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "recommendation": "Water every 3 days..."
+    }
+    ```
+
+---
 
 ### Weather
 
 - **GET /weather?city=Jakarta**
-  - Description: Get weather information for a city
-  - Response: `200 { "temperature": 30, "humidity": 70, "description": "Clear" }`
+  - Deskripsi: Mendapatkan cuaca berdasarkan nama kota
+  - (Tidak memerlukan autentikasi)
+  - Response:
+    ```json
+    {
+      "temperature": 30,
+      "humidity": 70,
+      "description": "Clear"
+    }
+    ```

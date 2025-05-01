@@ -1,28 +1,84 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Plant extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      Plant.belongsTo(models.User, {
+        foreignKey: 'userId',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
+      Plant.hasMany(models.PlantPhoto, {
+        foreignKey: 'plantId',
+        as: 'PlantPhotos',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
     }
   }
   Plant.init({
-    userId: DataTypes.INTEGER,
-    name: DataTypes.STRING,
-    species: DataTypes.STRING,
-    location: DataTypes.STRING,
-    light: DataTypes.STRING,
-    temperature: DataTypes.INTEGER
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    userId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'userId',
+      },
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [2, 100],
+      },
+    },
+    species: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [2, 100],
+      },
+    },
+    location: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [2, 100],
+      },
+    },
+    light: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [2, 50],
+      },
+    },
+    temperature: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: {
+        min: -10,
+        max: 50,
+      },
+    },
+    careRecommendation: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   }, {
     sequelize,
     modelName: 'Plant',
+    tableName: 'Plants',
+    timestamps: true,
   });
   return Plant;
 };

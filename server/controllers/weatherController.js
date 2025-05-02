@@ -2,12 +2,10 @@ const axios = require('axios');
 
 class WeatherController {
     static async getWeather(req, res, next) {
-        const { lat, lon } = req.query;
         try {
+            const { lat, lon } = req.query;
             if (!lat || !lon) {
-                const error = new Error("Latitude and longitude are required");
-                error.status = 400;
-                throw error;
+                return res.status(400).json({ message: "Latitude and longitude are required" });
             }
 
             const response = await axios.get(

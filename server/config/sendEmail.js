@@ -149,7 +149,7 @@ const sendReminderEmail = async (to, plantName, recommendation) => {
         console.log("Email sent successfully");
     } catch (error) {
         if (error.message.includes("invalid_grant")) {
-            console.error("Refresh Token invalid. Please generate a new refresh token using OAuth 2.0 Playground.");
+            // console.error("Refresh Token invalid. Please generate a new refresh token using OAuth 2.0 Playground.");
             throw new Error("Refresh Token invalid. Please update GMAIL_REFRESH_TOKEN in .env with a new token.");
         }
         console.error("Error sending email:", error);

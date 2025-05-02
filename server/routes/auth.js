@@ -3,7 +3,10 @@ const { authenticate } = require('../middlewares/authMiddleware');
 const AuthController = require('../controllers/authController');
 const router = express.Router();
 
+router.post('/register', AuthController.register);
+router.post('/login', AuthController.login);
 router.post('/google', AuthController.verifyGoogleToken);
-router.get('/verify', authenticate, AuthController.verifySession);
+router.get('/session', authenticate, AuthController.verifySession);
+router.post("/refresh-token", authenticate, AuthController.refreshToken);
 
 module.exports = router;

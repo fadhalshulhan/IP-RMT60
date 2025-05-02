@@ -31,7 +31,7 @@
     }
     ```
 
-- **GET /auth/verify**
+- **GET /auth/session**
   - Deskripsi: Verifikasi token dan ambil data user
   - Header:  
     `Authorization: Bearer <token>`

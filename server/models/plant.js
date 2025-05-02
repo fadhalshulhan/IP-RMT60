@@ -29,45 +29,97 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Users',
         key: 'userId',
       },
+      validate: {
+        notNull: {
+          msg: 'User ID harus diisi.'
+        },
+        notEmpty: {
+          msg: 'User ID tidak boleh kosong.'
+        },
+      },
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        notEmpty: true,
-        len: [2, 100],
+        notNull: {
+          msg: 'Nama tanaman harus diisi.'
+        },
+        notEmpty: {
+          msg: 'Nama tanaman tidak boleh kosong.'
+        },
+        len: {
+          args: [2, 100],
+          msg: 'Nama tanaman harus memiliki panjang antara 2 hingga 100 karakter.'
+        },
       },
     },
     species: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        notEmpty: true,
-        len: [2, 100],
+        notNull: {
+          msg: 'Spesies tanaman harus diisi.'
+        },
+        notEmpty: {
+          msg: 'Spesies tanaman tidak boleh kosong.'
+        },
+        len: {
+          args: [2, 100],
+          msg: 'Spesies tanaman harus memiliki panjang antara 2 hingga 100 karakter.'
+        },
       },
     },
     location: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        notEmpty: true,
-        len: [2, 100],
+        notNull: {
+          msg: 'Lokasi tanaman harus diisi.'
+        },
+        notEmpty: {
+          msg: 'Lokasi tanaman tidak boleh kosong.'
+        },
+        len: {
+          args: [2, 100],
+          msg: 'Lokasi tanaman harus memiliki panjang antara 2 hingga 100 karakter.'
+        },
       },
     },
     light: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        notEmpty: true,
-        len: [2, 50],
+        notNull: {
+          msg: 'Kondisi cahaya harus diisi.'
+        },
+        notEmpty: {
+          msg: 'Kondisi cahaya tidak boleh kosong.'
+        },
+        len: {
+          args: [2, 50],
+          msg: 'Kondisi cahaya harus memiliki panjang antara 2 hingga 50 karakter.'
+        },
       },
     },
     temperature: {
       type: DataTypes.FLOAT,
       allowNull: false,
       validate: {
-        min: -10,
-        max: 50,
+        notNull: {
+          msg: 'Suhu harus diisi.'
+        },
+        isFloat: {
+          msg: 'Suhu harus berupa angka desimal.'
+        },
+        min: {
+          args: -10,
+          msg: 'Suhu minimal adalah -10°C.'
+        },
+        max: {
+          args: 50,
+          msg: 'Suhu maksimal adalah 50°C.'
+        },
       },
     },
     careRecommendation: {

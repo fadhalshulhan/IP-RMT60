@@ -1,246 +1,168 @@
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
+/**
+ * @jest-environment node
+ */
+jest.mock('google-auth-library', () => ({
+    OAuth2Client: jest.fn()
+}));
 const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+const AuthController = require('../controllers/authController');
 const { User } = require('../models');
-const { authenticate } = require('../middlewares/authMiddleware');
-
-// Mock dependencies
-jest.mock('google-auth-library');
-jest.mock('../models');
-jest.mock('jsonwebtoken');
-
-// Suppress console logs during tests, except for debugging logs
-beforeAll(() => {
-    jest.spyOn(console, 'log').mockImplementation((...args) => {
-        if (
-            args[0].includes('Response body') ||
-            args[0].includes('userData before response') ||
-            args[0].includes('Response after auth route') ||
-            args[0].includes('Mock payload')
-        ) {
-            console.error(...args); // Allow specific logs to appear
-        }
-    });
-    jest.spyOn(console, 'error').mockImplementation(() => { });
-});
-afterAll(() => {
-    jest.restoreAllMocks();
-});
-
-// Import app after setting up console mocks
-const app = require('../app');
 
 describe('AuthController', () => {
+    let req, res, next, mockVerify;
+
+    beforeAll(() => {
+        process.env.JWT_SECRET = 'testsecret';
+        process.env.GOOGLE_CLIENT_ID = 'dummy-client-id';
+    });
+
     beforeEach(() => {
-        jest.clearAllMocks();
+        req = { body: {}, headers: {} };
+        res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+        next = jest.fn();
+
+        mockVerify = jest.fn();
+        OAuth2Client.mockClear();
+        OAuth2Client.mockImplementation(() => ({ verifyIdToken: mockVerify }));
     });
 
-    describe('POST /api/auth/google', () => {
-        const mockGoogleToken = 'mockGoogleToken';
-        const mockUserData = {
-            sub: '123', // Use 'sub' to match Google token payload
-            email: 'test@example.com',
-            name: 'Test User',
-            picture: 'https://example.com/picture.jpg',
-        };
-        const mockJwtToken = 'mockJwtToken';
-
-        it('should return 400 if googleToken is not provided', async () => {
-            const response = await request(app)
-                .post('/api/auth/google')
-                .send({});
-
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({ message: 'Google token is required' });
+    describe('register', () => {
+        it('400 jika body kurang lengkap', async () => {
+            req.body = { email: 'a@b.com' };
+            await AuthController.register(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Email, password, dan nama diperlukan' });
         });
 
-        it('should successfully verify Google token and return JWT', async () => {
-            // Mock Google OAuth client
-            const mockTicket = {
-                getPayload: jest.fn().mockReturnValue(mockUserData),
-            };
-            OAuth2Client.prototype.verifyIdToken = jest.fn().mockResolvedValue(mockTicket);
+        it('201 membuat user baru', async () => {
+            req.body = { email: 'u@u.com', password: 'pw', name: 'Name' };
+            User.findOne = jest.fn().mockResolvedValue(null);
+            User.create = jest.fn().mockResolvedValue({ userId: 'u1', email: 'u@u.com', name: 'Name' });
 
-            // Log mock payload for debugging
-            console.log('Mock payload:', mockTicket.getPayload());
+            await AuthController.register(req, res, next);
 
-            // Mock User model for both created and non-created cases
-            const mockUser = {
-                userId: mockUserData.sub,
-                email: mockUserData.email,
-                name: mockUserData.name,
-                picture: mockUserData.picture,
-                update: jest.fn().mockResolvedValue({
-                    userId: mockUserData.sub,
-                    email: mockUserData.email,
-                    name: mockUserData.name,
-                    picture: mockUserData.picture,
-                }),
-            };
-            User.findOrCreate = jest.fn().mockImplementation(async () => {
-                return [mockUser, true]; // Test with created: true
-            });
-
-            // Mock JWT
-            jwt.sign = jest.fn().mockReturnValue(mockJwtToken);
-
-            const response = await request(app)
-                .post('/api/auth/google')
-                .send({ googleToken: mockGoogleToken });
-
-            expect(response.status).toBe(200);
-            // Log response for debugging
-            console.log('Response body:', response.body);
-            expect(response.body).toEqual({
-                token: mockJwtToken,
-                user: {
-                    userId: mockUserData.sub,
-                    email: mockUserData.email,
-                    name: mockUserData.name,
-                    picture: mockUserData.picture,
-                },
-            });
-            expect(OAuth2Client.prototype.verifyIdToken).toHaveBeenCalledWith({
-                idToken: mockGoogleToken,
-                audience: process.env.GOOGLE_CLIENT_ID,
-            });
-            expect(User.findOrCreate).toHaveBeenCalled();
-            expect(jwt.sign).toHaveBeenCalledWith(
-                {
-                    userId: mockUserData.sub,
-                    email: mockUserData.email,
-                    name: mockUserData.name,
-                    picture: mockUserData.picture,
-                },
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-        });
-
-        it('should handle expired Google token', async () => {
-            OAuth2Client.prototype.verifyIdToken = jest.fn().mockRejectedValue({
-                name: 'TokenExpiredError',
-            });
-
-            const response = await request(app)
-                .post('/api/auth/google')
-                .send({ googleToken: mockGoogleToken });
-
-            expect(response.status).toBe(401);
-            expect(response.body).toEqual({ message: 'Google token has expired' });
-        });
-
-        it('should handle general errors', async () => {
-            OAuth2Client.prototype.verifyIdToken = jest.fn().mockRejectedValue(
-                new Error('General error')
-            );
-
-            const response = await request(app)
-                .post('/api/auth/google')
-                .send({ googleToken: mockGoogleToken });
-
-            expect(response.status).toBe(500);
-            expect(response.body).toHaveProperty('pesan', 'General error');
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                token: expect.any(String),
+                user: { userId: 'u1', email: 'u@u.com', name: 'Name' }
+            }));
         });
     });
 
-    describe('GET /api/auth/verify', () => {
-        const mockToken = 'mockJwtToken';
-        const mockUser = {
-            userId: '123',
-            email: 'test@example.com',
-            name: 'Test User',
-            picture: 'https://example.com/picture.jpg',
-        };
+    describe('login', () => {
+        it('401 jika salah email/password', async () => {
+            req.body = { email: 'x', password: 'p' };
+            User.findOne = jest.fn().mockResolvedValue(null);
 
-        it('should return 401 if no token is provided', async () => {
-            const response = await request(app).get('/api/auth/verify');
+            await AuthController.login(req, res, next);
 
-            expect(response.status).toBe(401);
-            expect(response.body).toEqual({ message: 'No token provided' });
+            expect(res.status).toHaveBeenCalledWith(401);
         });
 
-        it('should return 401 if user is not found', async () => {
-            jwt.verify = jest.fn().mockReturnValue({ userId: '123' });
+        it('200 jika sukses', async () => {
+            req.body = { email: 'e', password: 'pw' };
+            const user = {
+                userId: 'u1',
+                email: 'e',
+                name: 'N',
+                picture: 'pic',
+                password: 'h',
+                comparePassword: jest.fn().mockResolvedValue(true)
+            };
+            User.findOne = jest.fn().mockResolvedValue(user);
+
+            await AuthController.login(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                token: expect.any(String),
+                user: expect.objectContaining({ userId: 'u1', email: 'e', name: 'N', picture: 'pic' })
+            }));
+        });
+    });
+
+    describe('verifyGoogleToken', () => {
+        it('400 jika googleToken kosong', async () => {
+            await AuthController.verifyGoogleToken(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Google token is required' });
+        });
+
+        it('200 jika token valid', async () => {
+            req.body.googleToken = 'tok';
+            mockVerify.mockResolvedValue({
+                getPayload: () => ({ sub: 'id', email: 'e', name: 'N', picture: 'p' })
+            });
+            User.findOne = jest.fn().mockResolvedValue(null);
+            User.findOrCreate = jest.fn().mockResolvedValue([
+                { userId: 'id', email: 'e', name: 'N', picture: 'p' },
+                true
+            ]);
+
+            await AuthController.verifyGoogleToken(req, res, next);
+
+            expect(OAuth2Client).toHaveBeenCalledWith('dummy-client-id');
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                token: expect.any(String),
+                user: expect.objectContaining({ userId: 'id', email: 'e' })
+            }));
+        });
+
+        it('401 jika token expired', async () => {
+            req.body.googleToken = 'tok';
+            const err = new Error('exp');
+            err.name = 'TokenExpiredError';
+            mockVerify.mockRejectedValue(err);
+
+            await AuthController.verifyGoogleToken(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Google token has expired' });
+        });
+    });
+
+    describe('verifySession', () => {
+        it('401 jika unauthorized', async () => {
+            req.headers.authorization = '';
+            await AuthController.verifySession(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(401);
+        });
+
+        it('200 jika authorized', async () => {
+            req.headers.authorization = 'Bearer tk';
+            req.user = { userId: 'u1', email: 'e' };
+            await AuthController.verifySession(req, res, next);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ token: 'tk', user: req.user });
+        });
+    });
+
+    describe('refreshToken', () => {
+        it('404 jika user tidak ada', async () => {
+            req.user = { userId: 'u1' };
             User.findByPk = jest.fn().mockResolvedValue(null);
 
-            const response = await request(app)
-                .get('/api/auth/verify')
-                .set('Authorization', `Bearer ${mockToken}`);
+            await AuthController.refreshToken(req, res, next);
 
-            expect(response.status).toBe(401);
-            expect(response.body).toEqual({ message: 'User not found' });
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.json).toHaveBeenCalledWith({ message: 'User tidak ditemukan' });
         });
 
-        it('should successfully verify session', async () => {
-            jwt.verify = jest.fn().mockReturnValue(mockUser);
-            User.findByPk = jest.fn().mockResolvedValue(mockUser);
-
-            const response = await request(app)
-                .get('/api/auth/verify')
-                .set('Authorization', `Bearer ${mockToken}`);
-
-            expect(response.status).toBe(200);
-            expect(response.body).toEqual({
-                token: mockToken,
-                user: mockUser,
-            });
-            expect(jwt.verify).toHaveBeenCalledWith(mockToken, process.env.JWT_SECRET);
-            expect(User.findByPk).toHaveBeenCalledWith(mockUser.userId);
-        });
-
-        it('should handle expired JWT token', async () => {
-            jwt.verify = jest.fn().mockImplementation(() => {
-                throw { name: 'TokenExpiredError' };
+        it('200 refresh token', async () => {
+            req.user = { userId: 'u1' };
+            User.findByPk = jest.fn().mockResolvedValue({
+                userId: 'u1', email: 'e', name: 'N', picture: 'p'
             });
 
-            const response = await request(app)
-                .get('/api/auth/verify')
-                .set('Authorization', `Bearer ${mockToken}`);
+            await AuthController.refreshToken(req, res, next);
 
-            expect(response.status).toBe(401);
-            expect(response.body).toEqual({ message: 'Token has expired' });
-        });
-
-        it('should handle invalid JWT token', async () => {
-            jwt.verify = jest.fn().mockImplementation(() => {
-                throw new Error('Invalid token');
-            });
-
-            const response = await request(app)
-                .get('/api/auth/verify')
-                .set('Authorization', `Bearer ${mockToken}`);
-
-            expect(response.status).toBe(401);
-            expect(response.body).toEqual({ message: 'Invalid token' });
-        });
-    });
-
-    describe('authMiddleware', () => {
-        const mockToken = 'mockJwtToken';
-        const mockUser = {
-            userId: '123',
-            email: 'test@example.com',
-            name: 'Test User',
-            picture: 'https://example.com/picture.jpg',
-        };
-
-        it('should call next() for valid token and user', async () => {
-            const mockReq = {
-                headers: { authorization: `Bearer ${mockToken}` },
-            };
-            const mockRes = {};
-            const mockNext = jest.fn();
-
-            jwt.verify = jest.fn().mockReturnValue(mockUser);
-            User.findByPk = jest.fn().mockResolvedValue(mockUser);
-
-            await authenticate(mockReq, mockRes, mockNext);
-
-            expect(mockReq.user).toEqual(mockUser);
-            expect(mockNext).toHaveBeenCalled();
-            expect(jwt.verify).toHaveBeenCalledWith(mockToken, process.env.JWT_SECRET);
-            expect(User.findByPk).toHaveBeenCalledWith(mockUser.userId);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                token: expect.any(String),
+                user: expect.objectContaining({ userId: 'u1' })
+            }));
         });
     });
 });

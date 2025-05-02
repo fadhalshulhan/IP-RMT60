@@ -1,6 +1,6 @@
 const ErrorHandler = class {
     static errorHandler(err, req, res, next) {
-        console.error('🚀 ~ ErrorHandler ~ err:', err);
+        // console.error('🚀 ~ ErrorHandler ~ err:', err);
 
         // Menangani jenis error tertentu
         switch (err.name) {

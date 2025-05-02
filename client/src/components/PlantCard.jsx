@@ -37,22 +37,22 @@ function PlantCard({ plant }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
 
-    const validTypes = ["image/jpeg", "image/png", "image/gif"];
-    if (!validTypes.includes(file.type)) {
-      alert("Please upload a valid image file (JPEG, PNG, or GIF)");
-      return;
-    }
+  //   const validTypes = ["image/jpeg", "image/png", "image/gif"];
+  //   if (!validTypes.includes(file.type)) {
+  //     alert("Please upload a valid image file (JPEG, PNG, or GIF)");
+  //     return;
+  //   }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      dispatch(addPlantPhoto({ plantId: plant.id, photo: reader.result }));
-    };
-    reader.readAsDataURL(file);
-  };
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => {
+  //     dispatch(addPlantPhoto({ plantId: plant.id, photo: reader.result }));
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
 
   const handleAddPhoto = async (e) => {
     const file = e.target.files[0];
@@ -301,7 +301,7 @@ function PlantCard({ plant }) {
             value={formData.name}
             onChange={handleChange}
             placeholder="Nama Tanaman"
-            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="text"
@@ -309,7 +309,7 @@ function PlantCard({ plant }) {
             value={formData.species}
             onChange={handleChange}
             placeholder="Jenis Tanaman"
-            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="text"
@@ -317,7 +317,7 @@ function PlantCard({ plant }) {
             value={formData.location}
             onChange={handleChange}
             placeholder="Lokasi Penempatan"
-            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="text"
@@ -325,7 +325,7 @@ function PlantCard({ plant }) {
             value={formData.light}
             onChange={handleChange}
             placeholder="Kebutuhan Cahaya"
-            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
           <input
             type="number"
@@ -333,15 +333,15 @@ function PlantCard({ plant }) {
             value={formData.temperature}
             onChange={handleChange}
             placeholder="Suhu Ideal (°C)"
-            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+            className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition"
           />
-          <input
+          {/* <input
             type="file"
             name="photo"
             accept="image/*"
             onChange={handleFileChange}
             className="border border-gray-300 rounded-lg p-2 w-full text-gray-600 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-green-500 file:text-white hover:file:bg-green-600 transition"
-          />
+          /> */}
           <div className="flex space-x-3">
             <div className="flex gap-2">
               <Button

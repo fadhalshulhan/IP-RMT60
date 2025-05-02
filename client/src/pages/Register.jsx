@@ -1,29 +1,31 @@
 import { useDispatch, useSelector } from "react-redux";
-import { login, loginWithGoogle } from "../redux/slices/authSlice";
+import { register, loginWithGoogle } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import bgImage from "../assets/bg-login.jpg";
 import LoadingSpinnerLottie from "../components/LoadingSpinnerLottie";
 
-export default function Login() {
+export default function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, loading, error, initialized } = useSelector(
-    (state) => state.auth
-  );
+  const { user, loading, error } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
+    name: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    if (initialized && user?.id && !error) {
+    if (user?.id && !error) {
       navigate("/plants");
     }
-  }, [user, error, initialized, navigate]);
+  }, [user, error, navigate]);
 
   useEffect(() => {
     if (window.google) {
@@ -56,7 +58,7 @@ export default function Login() {
       try {
         await dispatch(loginWithGoogle(response.credential)).unwrap();
       } catch (err) {
-        console.error("Kesalahan login dengan Google:", err);
+        console.error("Kesalahan registrasi dengan Google:", err);
       }
     },
     [dispatch]
@@ -67,14 +69,27 @@ export default function Login() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    if (e.target.name === "password" || e.target.name === "confirmPassword") {
+      setPasswordError("");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError("Password dan konfirmasi password tidak cocok");
+      return;
+    }
     try {
-      await dispatch(login(formData)).unwrap();
+      await dispatch(
+        register({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+        })
+      ).unwrap();
     } catch (err) {
-      console.error("Kesalahan login dengan email/password:", err);
+      console.error("Kesalahan registrasi:", err);
     }
   };
 
@@ -82,14 +97,9 @@ export default function Login() {
     setShowPassword(!showPassword);
   };
 
-  // Jika masih memuat sesi, tampilkan loading
-  if (!initialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Memuat sesi...</p>
-      </div>
-    );
-  }
+  const toggleShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   return (
     <main className="min-h-screen flex">
@@ -104,7 +114,7 @@ export default function Login() {
       <div className="flex items-center justify-center w-full md:w-1/2 bg-gradient-to-br from-green-200 to-green-50 p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full transition-transform hover:scale-[1.02]">
           <h1 className="text-2xl font-semibold text-gray-800 text-center mb-6">
-            Masuk ke Plant Planner
+            Daftar ke Plant Planner
           </h1>
 
           {error && error !== "No token found" && (
@@ -113,14 +123,38 @@ export default function Login() {
             </div>
           )}
 
+          {passwordError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-center">
+              {passwordError}
+            </div>
+          )}
+
           {loading && (
             <div className="flex justify-center items-center space-x-2 mb-4">
               <LoadingSpinnerLottie size={24} />
-              <span className="text-gray-700">Sedang masuk…</span>
+              <span className="text-gray-700">Sedang mendaftar…</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-gray-700 text-sm font-medium mb-1"
+              >
+                Nama
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 rounded focus:outline-none bg-neutral-100 focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="Masukkan nama Anda"
+                // required
+              />
+            </div>
             <div>
               <label
                 htmlFor="email"
@@ -163,11 +197,35 @@ export default function Login() {
                 {showPassword ? "visibility_off" : "visibility"}
               </span>
             </div>
+            <div className="relative">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-gray-700 text-sm font-medium mb-1"
+              >
+                Konfirmasi Password
+              </label>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 rounded focus:outline-none bg-neutral-100 focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="Konfirmasi password Anda"
+                // required
+              />
+              <span
+                onClick={toggleShowConfirmPassword}
+                className="material-icons-round absolute right-4 top-8 text-gray-500 cursor-pointer"
+              >
+                {showConfirmPassword ? "visibility_off" : "visibility"}
+              </span>
+            </div>
             <button
               type="submit"
               className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
-              Masuk
+              Daftar
             </button>
           </form>
 
@@ -180,14 +238,14 @@ export default function Login() {
           <div id="googleSignInButton" className="flex justify-center mb-4" />
 
           <p className="text-center text-gray-500 text-sm">
-            Belum punya akun?{" "}
-            <a href="/register" className="text-green-600 hover:text-green-700">
-              Daftar di sini
+            Sudah punya akun?{" "}
+            <a href="/login" className="text-green-600 hover:text-green-700">
+              Masuk di sini
             </a>
           </p>
 
           <p className="text-center text-gray-500 text-xs mt-6">
-            Dengan masuk, Anda menyetujui{" "}
+            Dengan mendaftar, Anda menyetujui{" "}
             <a href="/terms" className="hover:text-green-700">
               Syarat & Ketentuan
             </a>{" "}

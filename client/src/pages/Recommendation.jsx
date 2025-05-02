@@ -338,7 +338,7 @@ function Recommendation() {
                 value={formData.species}
                 onChange={handleChange}
                 placeholder="Masukkan nama tanaman (contoh: Mawar)"
-                className="bg-neutral-100 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-plant-green"
+                className="bg-neutral-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-green-500 outline-none"
                 required
               />
             </div>
@@ -347,7 +347,7 @@ function Recommendation() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Lokasi
               </label>
-              <div className="p-2 rounded bg-neutral-300 w-full">
+              <div className="px-3 py-2 rounded bg-neutral-300 w-full">
                 {formData.location || "..."}
               </div>
             </div>
@@ -356,7 +356,7 @@ function Recommendation() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Intensitas Cahaya
               </label>
-              <div className="p-2 rounded bg-neutral-300 w-full">
+              <div className="px-3 py-2 rounded bg-neutral-300 w-full">
                 {formData.light || "..."}
               </div>
             </div>
@@ -365,7 +365,7 @@ function Recommendation() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Suhu
               </label>
-              <div className="p-2 rounded bg-neutral-300 w-full">
+              <div className="px-3 py-2 rounded bg-neutral-300 w-full">
                 {formData.temperature ? `${formData.temperature}°C` : "..."}
               </div>
             </div>

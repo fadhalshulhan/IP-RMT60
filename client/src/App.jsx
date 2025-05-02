@@ -1,9 +1,10 @@
-// src/App.jsx
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { restoreSession } from "./redux/slices/authSlice";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import Plants from "./pages/Plants";
 import Home from "./pages/Home";
 import Recommendation from "./pages/Recommendation";
@@ -18,7 +19,6 @@ export default function App() {
     dispatch(restoreSession());
   }, [dispatch]);
 
-  // tunggu sampai restoreSession selesai (fulfilled atau rejected)
   if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -32,10 +32,12 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/" element={<Home />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/plants" element={<Plants />} />
             <Route path="/recommendation" element={<Recommendation />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

@@ -121,8 +121,8 @@ export default function PlantForm({ onSubmit }) {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Masukkan nama tanaman (contoh: Mawar)"
-                className="bg-neutral-100 p-2 rounded w-full focus:ring-2 focus:ring-green-400 outline-none"
+                placeholder="Masukkan nama tanaman"
+                className="bg-neutral-100 px-3 py-2 rounded w-full focus:ring-2 focus:ring-green-500 outline-none"
                 required
               />
             </div>
@@ -142,7 +142,7 @@ export default function PlantForm({ onSubmit }) {
                 value={formData.species}
                 onChange={handleChange}
                 placeholder="Masukkan spesies (misal: Monstera)"
-                className="bg-neutral-100 p-2 rounded w-full focus:ring-2 focus:ring-green-400 outline-none"
+                className="bg-neutral-100 px-3 py-2 rounded w-full focus:ring-2 focus:ring-green-500 outline-none"
                 required
               />
             </div>
@@ -161,7 +161,7 @@ export default function PlantForm({ onSubmit }) {
                 name="location"
                 value={formData.location || "..."}
                 readOnly
-                className="bg-neutral-300 p-2 rounded w-full text-gray-700 cursor-not-allowed"
+                className="bg-neutral-300 px-3 py-2 rounded w-full text-gray-700 cursor-not-allowed"
               />
             </div>
 
@@ -179,7 +179,7 @@ export default function PlantForm({ onSubmit }) {
                 name="light"
                 value={formData.light || "..."}
                 readOnly
-                className="bg-neutral-300  p-2 rounded w-full text-gray-700 cursor-not-allowed"
+                className="bg-neutral-300 px-3 py-2 rounded w-full text-gray-700 cursor-not-allowed"
               />
             </div>
 
@@ -199,7 +199,7 @@ export default function PlantForm({ onSubmit }) {
                   formData.temperature ? `${formData.temperature}°C` : "..."
                 }
                 readOnly
-                className="bg-neutral-300  p-2 rounded w-full text-gray-700 cursor-not-allowed"
+                className="bg-neutral-300  px-3 py-2 rounded w-full text-gray-700 cursor-not-allowed"
               />
             </div>
           </div>

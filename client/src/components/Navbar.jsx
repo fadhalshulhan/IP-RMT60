@@ -14,8 +14,11 @@ export default function Navbar() {
     dispatch(logout());
     localStorage.clear();
     sessionStorage.clear();
-    navigate("/login", { replace: true });
-    setIsMenuOpen(false);
+    // Tunda navigasi untuk memastikan ProtectedRoute tidak mengarahkan ke /login
+    setTimeout(() => {
+      navigate("/", { replace: true });
+      setIsMenuOpen(false);
+    }, 100);
   };
 
   const toggleMenu = () => {
@@ -49,6 +52,7 @@ export default function Navbar() {
             {isMenuOpen ? "close" : "menu"}
           </span>
         </button>
+
         <div
           className={`${
             isMenuOpen ? "flex" : "hidden"
@@ -82,6 +86,14 @@ export default function Navbar() {
               >
                 <span className="material-icons-round text-lg">lightbulb</span>
                 Rekomendasi
+              </NavLink>
+              <NavLink
+                to="/profile"
+                className="text-white hover:text-green-200 transition-all duration-200 flex items-center gap-2 text-sm py-2 md:py-0"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="material-icons-round text-lg">person</span>
+                Profil
               </NavLink>
               <button
                 onClick={handleLogout}

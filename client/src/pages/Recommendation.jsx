@@ -131,11 +131,6 @@ function Recommendation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.species.trim()) {
-      setError("Nama dan spesies wajib diisi.");
-      return;
-    }
-
     if (!formData.species.trim()) {
       setError("Nama tanaman wajib diisi");
       return;

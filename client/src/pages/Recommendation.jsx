@@ -131,13 +131,18 @@ function Recommendation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.name.trim() || !formData.species.trim()) {
+      setError("Nama dan spesies wajib diisi.");
+      return;
+    }
+
     if (!formData.species.trim()) {
-      setError("Nama spesies wajib diisi");
+      setError("Nama tanaman wajib diisi");
       return;
     }
 
     if (formData.species.trim().length < 3) {
-      setError("Nama spesies harus minimal 3 karakter");
+      setError("Nama tanaman harus minimal 3 karakter");
       return;
     }
 

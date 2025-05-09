@@ -21,6 +21,20 @@ export default function PlantForm({ onSubmit }) {
   const [speciesError, setSpeciesError] = useState(null);
   const [speciesLoading, setSpeciesLoading] = useState(false);
 
+  const [loadingText, setLoadingText] = useState("Mohon menunggu");
+  useEffect(() => {
+    if (!loading) {
+      setLoadingText("Menambahkan");
+      return;
+    }
+    let dotCount = 0;
+    const iv = setInterval(() => {
+      dotCount = (dotCount + 1) % 4;
+      setLoadingText("Menambahkan" + ".".repeat(dotCount));
+    }, 500);
+    return () => clearInterval(iv);
+  }, [loading]);
+
   const formatDescription = (desc) =>
     desc
       ? desc
@@ -135,6 +149,27 @@ export default function PlantForm({ onSubmit }) {
       return;
     }
 
+    // Validasi form
+    if (!formData.name.trim()) {
+      setError("Nama Tanaman wajib diisi");
+      return;
+    }
+
+    if (formData.name.trim().length < 3) {
+      setError("Nama Tanaman harus minimal 3 karakter");
+      return;
+    }
+
+    if (!formData.species.trim()) {
+      setError("Jenis tanaman wajib diisi");
+      return;
+    }
+
+    if (formData.species.trim().length < 3) {
+      setError("Jenis tanaman harus minimal 3 karakter");
+      return;
+    }
+
     try {
       await onSubmit(formData);
       setFormData({
@@ -152,7 +187,27 @@ export default function PlantForm({ onSubmit }) {
         confirmButtonText: "OK",
       });
     } catch (err) {
-      setError(err || "Terjadi kesalahan saat menambahkan tanaman.");
+      const msg =
+        err.pesan ||
+        err.message ||
+        "Terjadi kesalahan saat menambahkan tanaman.";
+
+      // jika 503 AI service
+      if (
+        msg.includes(
+          "Maaf, layanan AI sedang ada gangguan, silakan coba lagi yaa!."
+        )
+      ) {
+        Swal.fire({
+          icon: "error",
+          title:
+            "Maaf, layanan AI sedang ada gangguan, silakan coba lagi yaa!.",
+          text: msg,
+        });
+      } else {
+        // inline error di atas form
+        setError(msg);
+      }
     }
   };
 
@@ -303,7 +358,7 @@ export default function PlantForm({ onSubmit }) {
 
           <div className="mt-4">
             <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? "Menambahkan..." : "Tambah Tanaman"}
+              {loading ? loadingText : "Tambah Tanaman"}
             </Button>
           </div>
         </form>

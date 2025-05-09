@@ -113,7 +113,6 @@ const plantSlice = createSlice({
             })
             .addCase(fetchPlants.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log("fetchPlants payload:", action.payload); // Debug payload
                 state.plants = Array.isArray(action.payload)
                     ? action.payload.filter(plant => plant && plant.id)
                     : [];
@@ -130,13 +129,12 @@ const plantSlice = createSlice({
             })
             .addCase(addPlant.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log("addPlant payload:", action.payload); // Debug payload
                 const newPlant = action.payload?.plant;
                 if (newPlant?.id) {
                     // Cek apakah tanaman sudah ada untuk menghindari duplikasi
                     if (!state.plants.some(p => p.id === newPlant.id)) {
                         state.plants.push(newPlant);
-                        state.plants.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                        state.plants.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                     }
                     state.errors.addPlant = null;
                 } else {

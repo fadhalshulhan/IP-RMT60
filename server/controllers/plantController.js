@@ -60,7 +60,10 @@ class PlantController {
             const plantData = plant.toJSON
                 ? plant.toJSON()
                 : { ...plant };
-            return res.status(201).json(plantData);
+            return res.status(201).json({
+                plant: plantData,
+                message: "Plant created and email sent successfully",
+            });
         } catch (error) {
             console.error("Error in createPlant:", error);
             next(error);

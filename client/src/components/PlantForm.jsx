@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchWeather } from "../redux/slices/weatherSlice";
+import { addPlant } from "../redux/slices/plantSlice";
 import Button from "./Button";
 import { debounce } from "lodash";
 import api from "../helpers/api";
 import LoadingSpinnerLottie from "./LoadingSpinnerLottie";
+import Swal from "sweetalert2";
 
 export default function PlantForm({ onSubmit }) {
   const dispatch = useDispatch();
+  const { loading, errors } = useSelector((state) => state.plants);
   const [formData, setFormData] = useState({
     name: "",
     species: "",
@@ -123,21 +126,39 @@ export default function PlantForm({ onSubmit }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  // Fungsi untuk menangani submit dan menampilkan SweetAlert
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.species.trim()) {
       setError("Nama dan spesies wajib diisi.");
       return;
     }
-    onSubmit(formData);
-    setFormData({
-      name: "",
-      species: "",
-      location: formData.location,
-      light: formData.light,
-      temperature: formData.temperature,
-    });
-    setSpeciesError(null);
+
+    try {
+      const result = await dispatch(addPlant(formData)).unwrap(); // Jalankan action addPlant
+      onSubmit(formData); // Panggil onSubmit dari props
+      setFormData({
+        name: "",
+        species: "",
+        location: formData.location,
+        light: formData.light,
+        temperature: formData.temperature,
+      });
+      setSpeciesError(null);
+
+      // Tampilkan SweetAlert ketika berhasil
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text:
+          // result.message ||
+          "Yay, tanaman berhasil ditambahkan! Kontennya sudah kami kirim ke email kamu, ya!",
+        confirmButtonColor: "#1B5E20",
+        confirmButtonText: "OK",
+      });
+    } catch (err) {
+      setError(err || "Gagal menambahkan tanaman.");
+    }
   };
 
   return (
@@ -145,6 +166,11 @@ export default function PlantForm({ onSubmit }) {
       {error && (
         <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
           {error}
+        </div>
+      )}
+      {errors.addPlant && (
+        <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+          {errors.addPlant}
         </div>
       )}
       <div className="bg-white p-6 rounded shadow">
@@ -281,8 +307,8 @@ export default function PlantForm({ onSubmit }) {
           </div>
 
           <div className="mt-4">
-            <Button type="submit" variant="primary">
-              Tambah Tanaman
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? "Menambahkan..." : "Tambah Tanaman"}
             </Button>
           </div>
         </form>

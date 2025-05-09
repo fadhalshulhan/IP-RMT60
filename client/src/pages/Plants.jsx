@@ -15,6 +15,7 @@ function Plants() {
 
   const handleAddPlant = (plantData) => {
     dispatch(addPlant(plantData));
+    dispatch(fetchPlants());
   };
 
   return (

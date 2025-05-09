@@ -9,7 +9,6 @@ import {
 import TimeAgo from "../helpers/TimeAgo";
 import Shimmer from "./Shimmer";
 import Button from "./Button";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import LoadingSpinnerLottie from "./LoadingSpinnerLottie";
 
 function PlantCard({ plant }) {
@@ -32,6 +31,11 @@ function PlantCard({ plant }) {
     photo: null,
   });
   const fileInputRef = useRef(null);
+
+  if (!plant || !plant.id) {
+    console.warn("Invalid plant data:", plant); // Debug data tidak valid
+    return null;
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

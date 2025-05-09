@@ -113,6 +113,7 @@ class PlantController {
             const plants = await Plant.findAll({
                 where: { userId: req.user.userId },
                 include: [{ model: PlantPhoto, as: "PlantPhotos" }],
+                order: [['createdAt', 'DESC']],
             });
             res.status(200).json(plants);
         } catch (error) {

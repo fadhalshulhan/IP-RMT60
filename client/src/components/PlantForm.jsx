@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWeather } from "../redux/slices/weatherSlice";
-import { addPlant } from "../redux/slices/plantSlice";
 import Button from "./Button";
 import { debounce } from "lodash";
 import api from "../helpers/api";
@@ -20,7 +19,7 @@ export default function PlantForm({ onSubmit }) {
   });
   const [error, setError] = useState(null);
   const [speciesError, setSpeciesError] = useState(null);
-  const [speciesLoading, setSpeciesLoading] = useState(false); // State untuk loading spesies
+  const [speciesLoading, setSpeciesLoading] = useState(false);
 
   const formatDescription = (desc) =>
     desc
@@ -101,7 +100,8 @@ export default function PlantForm({ onSubmit }) {
     } catch (err) {
       console.log("🚀 ~ fetchSpeciesSuggestion ~ err:", err);
       const errorMessage =
-        err.response?.data?.message || "Gagal memprediksi spesies tanaman.";
+        err.response?.data?.message ||
+        "Gagal memprediksi spesies tanaman. Silakan coba lagi.";
       setSpeciesError(errorMessage);
       setTimeout(() => setSpeciesError(null), 5000);
       setFormData((prev) => ({ ...prev, species: "" }));
@@ -127,6 +127,7 @@ export default function PlantForm({ onSubmit }) {
   };
 
   // Fungsi untuk menangani submit dan menampilkan SweetAlert
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.species.trim()) {
@@ -135,8 +136,7 @@ export default function PlantForm({ onSubmit }) {
     }
 
     try {
-      const result = await dispatch(addPlant(formData)).unwrap(); // Jalankan action addPlant
-      onSubmit(formData); // Panggil onSubmit dari props
+      await onSubmit(formData);
       setFormData({
         name: "",
         species: "",
@@ -144,20 +144,15 @@ export default function PlantForm({ onSubmit }) {
         light: formData.light,
         temperature: formData.temperature,
       });
-      setSpeciesError(null);
-
-      // Tampilkan SweetAlert ketika berhasil
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
-        text:
-          // result.message ||
-          "Yay, tanaman berhasil ditambahkan! Kontennya sudah kami kirim ke email kamu, ya!",
+        text: "Yay, tanaman berhasil ditambahkan! Kontennya sudah kami kirim ke email kamu, ya!",
         confirmButtonColor: "#1B5E20",
         confirmButtonText: "OK",
       });
     } catch (err) {
-      setError(err || "Gagal menambahkan tanaman.");
+      setError(err || "Terjadi kesalahan saat menambahkan tanaman.");
     }
   };
 

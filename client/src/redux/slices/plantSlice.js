@@ -21,8 +21,14 @@ export const addPlant = createAsyncThunk('plants/addPlant', async (plantData, { 
     }
     try {
         const response = await api.post('/api/plants', plantData);
-        return response.data;
+        // Normalisasi respons
+        const plant = response.data.plant || response.data;
+        if (!plant?.id) {
+            throw new Error('Invalid plant data from server');
+        }
+        return { plant };
     } catch (error) {
+        console.error("addPlant error:", error);
         return rejectWithValue(error.response?.data || { message: 'Failed to add plant' });
     }
 });
@@ -107,7 +113,10 @@ const plantSlice = createSlice({
             })
             .addCase(fetchPlants.fulfilled, (state, action) => {
                 state.loading = false;
-                state.plants = action.payload;
+                console.log("fetchPlants payload:", action.payload); // Debug payload
+                state.plants = Array.isArray(action.payload)
+                    ? action.payload.filter(plant => plant && plant.id)
+                    : [];
                 state.errors.fetchPlants = null;
             })
             .addCase(fetchPlants.rejected, (state, action) => {
@@ -121,8 +130,19 @@ const plantSlice = createSlice({
             })
             .addCase(addPlant.fulfilled, (state, action) => {
                 state.loading = false;
-                state.plants.push(action.payload.plant);
-                state.errors.addPlant = null;
+                console.log("addPlant payload:", action.payload); // Debug payload
+                const newPlant = action.payload?.plant;
+                if (newPlant?.id) {
+                    // Cek apakah tanaman sudah ada untuk menghindari duplikasi
+                    if (!state.plants.some(p => p.id === newPlant.id)) {
+                        state.plants.push(newPlant);
+                        state.plants.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    }
+                    state.errors.addPlant = null;
+                } else {
+                    state.errors.addPlant = "Data tanaman tidak valid";
+                    console.error("Invalid plant data:", action.payload);
+                }
             })
             .addCase(addPlant.rejected, (state, action) => {
                 state.loading = false;

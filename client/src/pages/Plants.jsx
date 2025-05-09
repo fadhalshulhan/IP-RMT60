@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchPlants, addPlant } from "../redux/slices/plantSlice";
 import PlantForm from "../components/PlantForm";
@@ -13,10 +13,10 @@ function Plants() {
     dispatch(fetchPlants());
   }, [dispatch]);
 
-  const handleAddPlant = (plantData) => {
-    dispatch(addPlant(plantData));
-    dispatch(fetchPlants());
-  };
+  const handleAddPlant = useCallback(
+    (plantData) => dispatch(addPlant(plantData)).unwrap(),
+    [dispatch]
+  );
 
   return (
     <div className="container mx-auto p-4 sm:p-6">

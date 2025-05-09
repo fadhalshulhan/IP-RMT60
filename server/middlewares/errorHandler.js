@@ -55,6 +55,19 @@ const ErrorHandler = class {
                     pesan: 'Kesalahan saat menghasilkan rekomendasi dari layanan AI'
                 });
 
+            // Tangani ServerError dari @google/genai
+            case 'ServerError':
+                // jika service unavailable
+                if (err.error?.code === 503) {
+                    return res.status(503).json({
+                        pesan: 'Maaf, layanan AI sedang ada gangguan, silakan coba lagi yaa!.'
+                    });
+                }
+                // fallback untuk error GenAI lain
+                return res.status(502).json({
+                    pesan: 'Kesalahan saat menghasilkan rekomendasi dari layanan AI'
+                });
+
             // Kasus default untuk error yang tidak ditangani
             default:
                 return res.status(err.status || 500).json({

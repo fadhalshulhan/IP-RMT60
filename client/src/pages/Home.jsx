@@ -34,7 +34,7 @@ function Home() {
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          {/* <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <h3 className="text-xl font-semibold text-green-600 mb-2">
               ⏰ Pengingat Perawatan
             </h3>
@@ -42,7 +42,7 @@ function Home() {
               Terima pengingat perawatan tanaman melalui email agar tidak pernah
               terlambat menyiram atau memindahkan tanaman lagi.
             </p>
-          </div>
+          </div> */}
 
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
             <h3 className="text-xl font-semibold text-green-600 mb-2">

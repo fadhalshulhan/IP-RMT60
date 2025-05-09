@@ -1,21 +1,16 @@
 require('dotenv').config();
-
 const nodemailer = require('nodemailer');
 
-const sendReminderEmail = async (to, plantName, recommendation) => {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-            type: "OAuth2",
-            user: process.env.GMAIL_EMAIL_USER,
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-        },
-    });
+// Konfigurasi Nodemailer dengan autentikasi berbasis user dan pass
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.GMAIL_EMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+    },
+});
 
+const sendReminderEmail = async (to, plantName, recommendation) => {
     const formatRecommendation = (recommendation) => {
         if (!recommendation) {
             return `<p style="color: #333333; line-height: 1.6; font-size: 14px;">Tidak ada panduan perawatan yang tersedia.</p>`;
@@ -30,7 +25,7 @@ const sendReminderEmail = async (to, plantName, recommendation) => {
                 "Tentu, berikut adalah ",
                 "Rekomendasi perawatan rinci untuk tanaman Rosa (Mawar) Anda di dalam ruangan dengan kondisi cahaya terang tidak langsung dan suhu 25°C:"
             )
-            : `Rekomendasi perawatan rinci untuk tanaman <strong>${plantName}</strong>  Anda di dalam ruangan dengan kondisi cahaya terang tidak langsung dan suhu 25°C:`;
+            : `Rekomendasi perawatan rinci untuk tanaman <strong>${plantName}</strong> Anda di dalam ruangan dengan kondisi cahaya terang tidak langsung dan suhu 25°C:`;
 
         const cleanedRecommendation = introTextRaw
             ? recommendation.replace(introTextRaw, "").trim()
@@ -107,8 +102,8 @@ const sendReminderEmail = async (to, plantName, recommendation) => {
                                 <h5 style="font-size: 14px; font-weight: 600; color: #333333;">${subsection.heading}</h5>
                                 ${subsection.content.length > 1 || subsection.content[0].includes(':')
                         ? `<ul style="list-style-type: disc; margin-left: 24px; color: #333333; line-height: 1.6; margin-top: 4px; font-size: 14px;">
-                                            ${subsection.content.map((item) => `<li>${item}</li>`).join('')}
-                                           </ul>`
+                                        ${subsection.content.map((item) => `<li>${item}</li>`).join('')}
+                                    </ul>`
                         : `<p style="color: #333333; line-height: 1.6; margin-top: 4px; font-size: 14px;">${subsection.content[0]}</p>`
                     }
                             </div>
@@ -148,10 +143,6 @@ const sendReminderEmail = async (to, plantName, recommendation) => {
         await transporter.sendMail(mailOptions);
         console.log("Email sent successfully");
     } catch (error) {
-        if (error.message.includes("invalid_grant")) {
-            // console.error("Refresh Token invalid. Please generate a new refresh token using OAuth 2.0 Playground.");
-            throw new Error("Refresh Token invalid. Please update GMAIL_REFRESH_TOKEN in .env with a new token.");
-        }
         console.error("Error sending email:", error);
         throw error;
     }

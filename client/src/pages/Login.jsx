@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, loginWithGoogle } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router";
 import { useEffect, useCallback, useState } from "react";
-import bgImage from "../assets/bg-login.jpg";
 import LoadingSpinnerLottie from "../components/LoadingSpinnerLottie";
 
 export default function Login() {
@@ -18,6 +17,30 @@ export default function Login() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+
+  const [bgImage, setBgImage] = useState("");
+
+  useEffect(() => {
+    const fetchImageFromPixabay = async () => {
+      try {
+        const response = await fetch(
+          `https://pixabay.com/api/?key=${
+            import.meta.env.VITE_PIXABAY_API_KEY
+          }&q=${import.meta.env.VITE_PIXABAY_QUERY}&image_type=photo&per_page=${
+            import.meta.env.VITE_PIXABAY_PER_PAGE
+          }`
+        );
+        const data = await response.json();
+        const randomImage =
+          data.hits[Math.floor(Math.random() * data.hits.length)];
+        setBgImage(randomImage.largeImageURL);
+      } catch (err) {
+        console.error("Gagal mengambil gambar dari Pixabay:", err);
+        setBgImage(import.meta.env.VITE_FALLBACK_IMAGE_URL);
+      }
+    };
+    fetchImageFromPixabay();
+  }, []);
 
   useEffect(() => {
     if (initialized && user?.id && !error) {

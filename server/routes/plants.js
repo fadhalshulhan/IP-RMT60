@@ -4,6 +4,7 @@ const { authenticate } = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 router.post('/', authenticate, PlantController.createPlant);
+router.post('/predict-species', authenticate, PlantController.predictSpecies);
 router.get('/', authenticate, PlantController.getPlants);
 router.put('/:id', authenticate, PlantController.updatePlant);
 router.delete('/:id', authenticate, PlantController.deletePlant);

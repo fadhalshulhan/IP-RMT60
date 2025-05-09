@@ -1,7 +1,7 @@
 const { GoogleGenAI } = require("@google/genai");
 const { Plant, PlantPhoto } = require('../models');
 const cloudinary = require("../config/cloudinary");
-const { sendReminderEmail } = require("../config/sendEmail");
+const EmailController = require("./EmailController");
 
 class PlantController {
     static async createPlant(req, res, next) {
@@ -56,13 +56,51 @@ class PlantController {
             }
 
             // === kirim email pengingat ===
-            await sendReminderEmail(req.user.email, name, recommendation);
+            await EmailController.sendReminderEmail(req.user.email, name, recommendation);
             const plantData = plant.toJSON
                 ? plant.toJSON()
                 : { ...plant };
             return res.status(201).json(plantData);
         } catch (error) {
             console.error("Error in createPlant:", error);
+            next(error);
+        }
+    }
+
+    static async predictSpecies(req, res, next) {
+        try {
+            const { name } = req.body;
+
+            if (!name) {
+                return res.status(400).json({ message: "Nama tanaman diperlukan" });
+            }
+
+            const genAI = new GoogleGenAI(process.env.GOOGLE_API_KEY);
+            const prompt = `Berdasarkan nama tanaman "${name}", prediksi spesies tanaman yang paling mungkin. Berikan hanya nama spesies (contoh: Monstera deliciosa) tanpa penjelasan tambahan.`;
+
+            const response = await genAI.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: prompt,
+            });
+
+            // Validasi respons AI
+            const candidate = response?.candidates?.[0];
+            const content = candidate?.content;
+            let species;
+            if (!content) {
+                return res.status(502).json({ message: "Kesalahan saat menghasilkan prediksi dari layanan AI" });
+            }
+            if (content.parts?.[0]?.text) {
+                species = content.parts[0].text.trim();
+            } else if (content.text) {
+                species = content.text.trim();
+            } else {
+                return res.status(502).json({ message: "Kesalahan saat menghasilkan prediksi dari layanan AI" });
+            }
+
+            return res.status(200).json({ species });
+        } catch (error) {
+            console.error("Error in predictSpecies:", error);
             next(error);
         }
     }

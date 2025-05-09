@@ -291,7 +291,7 @@ function PlantCard({ plant }) {
   }
 
   return (
-    <div className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 max-w-sm">
+    <div className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
       {/* Edit Mode */}
       {isEditing ? (
         <div className="space-y-4">

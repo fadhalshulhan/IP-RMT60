@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchWeather } from "../redux/slices/weatherSlice";
 import Button from "./Button";
+import { debounce } from "lodash";
+import api from "../helpers/api";
+import LoadingSpinnerLottie from "./LoadingSpinnerLottie";
 
 export default function PlantForm({ onSubmit }) {
   const dispatch = useDispatch();
@@ -13,6 +16,8 @@ export default function PlantForm({ onSubmit }) {
     temperature: "",
   });
   const [error, setError] = useState(null);
+  const [speciesError, setSpeciesError] = useState(null);
+  const [speciesLoading, setSpeciesLoading] = useState(false); // State untuk loading spesies
 
   const formatDescription = (desc) =>
     desc
@@ -76,9 +81,46 @@ export default function PlantForm({ onSubmit }) {
     getLocationAndWeather();
   }, [getLocationAndWeather]);
 
+  // Fungsi untuk memanggil API prediksi spesies
+  const fetchSpeciesSuggestion = async (name) => {
+    if (!name.trim()) {
+      setFormData((prev) => ({ ...prev, species: "" }));
+      setSpeciesError(null);
+      return;
+    }
+
+    setSpeciesLoading(true);
+    try {
+      const response = await api.post("/api/plants/predict-species", { name });
+      const predictedSpecies = response.data.species || "";
+      setFormData((prev) => ({ ...prev, species: predictedSpecies }));
+      setSpeciesError(null);
+    } catch (err) {
+      console.log("🚀 ~ fetchSpeciesSuggestion ~ err:", err);
+      const errorMessage =
+        err.response?.data?.message || "Gagal memprediksi spesies tanaman.";
+      setSpeciesError(errorMessage);
+      setTimeout(() => setSpeciesError(null), 5000);
+      setFormData((prev) => ({ ...prev, species: "" }));
+    } finally {
+      setSpeciesLoading(false);
+    }
+  };
+
+  const debouncedFetchSpecies = useCallback(
+    debounce(fetchSpeciesSuggestion, 500),
+    []
+  );
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
+    setSpeciesError(null);
+
+    if (name === "name") {
+      debouncedFetchSpecies(value);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -95,6 +137,7 @@ export default function PlantForm({ onSubmit }) {
       light: formData.light,
       temperature: formData.temperature,
     });
+    setSpeciesError(null);
   };
 
   return (
@@ -128,23 +171,56 @@ export default function PlantForm({ onSubmit }) {
             </div>
 
             {/* Spesies */}
-            <div>
-              <label
-                htmlFor="species"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Jenis
-              </label>
-              <input
-                type="text"
-                id="species"
-                name="species"
-                value={formData.species}
-                onChange={handleChange}
-                placeholder="Masukkan spesies (misal: Monstera)"
-                className="bg-neutral-100 px-3 py-2 rounded w-full focus:ring-2 focus:ring-green-500 outline-none"
-                required
-              />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  htmlFor="species"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Jenis Tanaman
+                </label>
+                <span className="text-xs text-gray-500 italic">
+                  (diprediksi otomatis oleh AI)
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="species"
+                  name="species"
+                  value={formData.species}
+                  onChange={handleChange}
+                  placeholder="Masukkan spesies (misal: Monstera)"
+                  className={`bg-neutral-100 px-3 py-2 rounded w-full focus:ring-2 focus:ring-green-500 outline-none pr-10 ${
+                    speciesError ? "border border-red-600" : ""
+                  }`}
+                  required
+                />
+                {speciesLoading && (
+                  <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
+                    <LoadingSpinnerLottie size={48} />{" "}
+                  </div>
+                )}
+              </div>
+              {speciesError && (
+                <div className="flex items-center mt-1">
+                  <svg
+                    className="h-4 w-4 text-red-600 mr-1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-red-600 text-xs">{speciesError}</p>
+                </div>
+              )}
             </div>
 
             {/* Lokasi */}

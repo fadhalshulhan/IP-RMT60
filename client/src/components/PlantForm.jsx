@@ -182,7 +182,7 @@ export default function PlantForm({ onSubmit }) {
       Swal.fire({
         icon: "success",
         title: "Berhasil!",
-        text: "Yay, tanaman berhasil ditambahkan! Kontennya sudah kami kirim ke email kamu, ya!",
+        text: "Yay, tanaman kamu berhasil ditambahkan! Panduannya juga sudah kami kirim ke email kamu, ya!",
         confirmButtonColor: "#1B5E20",
         confirmButtonText: "OK",
       });

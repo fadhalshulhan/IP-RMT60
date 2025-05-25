@@ -1,4 +1,4 @@
-# Plant Planner - Frontend
+# Plant Planner
 
 Plant Planner adalah platform berkebun cerdas berbasis AI yang membantu pengguna merawat tanaman mereka melalui antarmuka yang ramah pengguna dan fitur-fitur cerdas.
 
